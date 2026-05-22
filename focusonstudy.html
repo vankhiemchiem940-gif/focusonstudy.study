@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FocusOnStudy — Focus on what matters.</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080b12;
+    --bg2: #0d1117;
+    --bg3: #111827;
+    --surface: #161d2b;
+    --surface2: #1e2a3a;
+    --border: rgba(99,130,180,0.12);
+    --text: #e8edf5;
+    --text2: #8899b0;
+    --text3: #4a5568;
+    --accent: #4f8ef7;
+    --accent2: #7c3aed;
+    --accent3: #06b6d4;
+    --glow: rgba(79,142,247,0.25);
+    --glow2: rgba(124,58,237,0.2);
+    --green: #10b981;
+    --yellow: #f59e0b;
+    --red: #ef4444;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; overflow-x:hidden; }
+  body {
+    font-family:'Inter',sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-track { background:var(--bg); }
+  ::-webkit-scrollbar-thumb { background:var(--surface2); border-radius:4px; }
+
+  /* ====== HOME SCREEN ====== */
+  #home-screen {
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    overflow:hidden;
+  }
+  #home-screen.hidden { display:none; }
+
+  /* Mesh background */
+  .mesh-bg {
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:0;
+  }
+  .mesh-blob {
+    position:absolute;
+    border-radius:50%;
+    filter:blur(100px);
+    opacity:0.18;
+    animation:blobFloat 8s ease-in-out infinite;
+  }
+  .mesh-blob:nth-child(1) { width:600px;height:600px;background:var(--accent);top:-200px;left:-100px;animation-delay:0s; }
+  .mesh-blob:nth-child(2) { width:500px;height:500px;background:var(--accent2);bottom:-100px;right:-100px;animation-delay:3s; }
+  .mesh-blob:nth-child(3) { width:400px;height:400px;background:var(--accent3);top:40%;left:40%;animation-delay:6s; }
+  @keyframes blobFloat {
+    0%,100% { transform:translate(0,0) scale(1); }
+    33% { transform:translate(30px,-30px) scale(1.05); }
+    66% { transform:translate(-20px,20px) scale(0.95); }
+  }
+
+  /* Noise overlay */
+  .noise {
+    position:fixed;
+    inset:0;
+    opacity:0.03;
+    pointer-events:none;
+    z-index:1;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size:128px 128px;
+  }
+
+  .home-inner { position:relative;z-index:2;display:flex;flex-direction:column;min-height:100vh; }
+
+  /* Nav */
+  nav {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:24px 40px;
+    border-bottom:1px solid var(--border);
+    backdrop-filter:blur(12px);
+  }
+  .logo {
+    display:flex;align-items:center;gap:10px;
+    font-family:'Syne',sans-serif;font-weight:800;font-size:20px;letter-spacing:-0.5px;
+  }
+  .logo-icon {
+    width:32px;height:32px;border-radius:8px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center;font-size:16px;
+  }
+  .nav-right { display:flex;align-items:center;gap:16px; }
+  .nav-btn {
+    background:var(--surface);border:1px solid var(--border);color:var(--text2);
+    padding:8px 16px;border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;
+    cursor:pointer;transition:all 0.2s;
+  }
+  .nav-btn:hover { background:var(--surface2);color:var(--text); }
+
+  /* Hero */
+  .hero {
+    flex:1;display:flex;align-items:center;justify-content:center;
+    padding:60px 40px;text-align:center;flex-direction:column;
+  }
+  .hero-badge {
+    display:inline-flex;align-items:center;gap:8px;
+    background:rgba(79,142,247,0.08);border:1px solid rgba(79,142,247,0.2);
+    color:var(--accent);padding:6px 16px;border-radius:100px;font-size:12px;
+    letter-spacing:1px;text-transform:uppercase;margin-bottom:32px;
+    animation:fadeUp 0.6s ease both;
+  }
+  .hero-badge .dot { width:6px;height:6px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)} }
+
+  h1 {
+    font-family:'Syne',sans-serif;font-weight:800;
+    font-size:clamp(48px,8vw,96px);line-height:1;
+    letter-spacing:-3px;
+    animation:fadeUp 0.6s ease 0.1s both;
+  }
+  h1 span { 
+    background:linear-gradient(135deg,var(--accent) 0%,var(--accent3) 50%,var(--accent2) 100%);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  }
+  .slogan {
+    font-family:'JetBrains Mono',monospace;font-size:16px;color:var(--text2);
+    margin-top:20px;letter-spacing:2px;text-transform:uppercase;
+    animation:fadeUp 0.6s ease 0.2s both;
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display:flex;gap:24px;justify-content:center;flex-wrap:wrap;
+    margin-top:48px;
+    animation:fadeUp 0.6s ease 0.3s both;
+  }
+  .stat-card {
+    background:var(--surface);border:1px solid var(--border);
+    padding:20px 28px;border-radius:16px;text-align:center;min-width:140px;
+    transition:all 0.2s;position:relative;overflow:hidden;
+  }
+  .stat-card::before {
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(135deg,rgba(79,142,247,0.05),transparent);
+    opacity:0;transition:opacity 0.2s;
+  }
+  .stat-card:hover { border-color:rgba(79,142,247,0.3);transform:translateY(-2px); }
+  .stat-card:hover::before { opacity:1; }
+  .stat-val {
+    font-family:'Syne',sans-serif;font-size:28px;font-weight:800;
+    background:linear-gradient(135deg,var(--accent),var(--accent3));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  }
+  .stat-label { color:var(--text2);font-size:12px;margin-top:4px;text-transform:uppercase;letter-spacing:0.5px; }
+
+  /* Start button */
+  .start-btn-wrap {
+    margin-top:48px;
+    animation:fadeUp 0.6s ease 0.4s both;
+  }
+  .start-btn {
+    position:relative;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#fff;border:none;
+    padding:20px 56px;border-radius:16px;
+    font-family:'Syne',sans-serif;font-size:18px;font-weight:700;letter-spacing:0.5px;
+    cursor:pointer;overflow:hidden;
+    transition:all 0.3s;
+    box-shadow:0 0 40px var(--glow),0 0 80px var(--glow2);
+  }
+  .start-btn::before {
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(135deg,rgba(255,255,255,0.15),transparent);
+    transition:opacity 0.3s;
+  }
+  .start-btn:hover { transform:translateY(-3px) scale(1.02);box-shadow:0 0 60px var(--glow),0 8px 30px rgba(0,0,0,0.3); }
+  .start-btn:active { transform:scale(0.98); }
+  .start-btn .btn-glow {
+    position:absolute;inset:-2px;border-radius:18px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    z-index:-1;filter:blur(12px);opacity:0.6;
+  }
+
+  /* Sound toggle */
+  .sound-toggle {
+    display:flex;align-items:center;gap:8px;
+    background:var(--surface);border:1px solid var(--border);
+    padding:10px 20px;border-radius:100px;cursor:pointer;
+    font-size:13px;color:var(--text2);transition:all 0.2s;
+    margin-top:20px;
+  }
+  .sound-toggle:hover { border-color:rgba(79,142,247,0.3);color:var(--text); }
+  .sound-toggle.active { border-color:var(--accent);color:var(--accent);background:rgba(79,142,247,0.08); }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ====== STUDY SCREEN (FULLSCREEN) ====== */
+  #study-screen {
+    display:none;
+    position:fixed;inset:0;
+    background:var(--bg);
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    z-index:1000;
+    overflow:hidden;
+  }
+  #study-screen.active { display:flex; }
+
+  /* Animated gradient bg */
+  .study-bg {
+    position:absolute;inset:0;
+    background:radial-gradient(ellipse at 20% 20%, rgba(79,142,247,0.06) 0%, transparent 60%),
+               radial-gradient(ellipse at 80% 80%, rgba(124,58,237,0.06) 0%, transparent 60%);
+    animation:gradientShift 12s ease infinite alternate;
+  }
+  @keyframes gradientShift {
+    0% { background:radial-gradient(ellipse at 20% 20%, rgba(79,142,247,0.08) 0%, transparent 60%),radial-gradient(ellipse at 80% 80%, rgba(124,58,237,0.08) 0%, transparent 60%); }
+    100% { background:radial-gradient(ellipse at 70% 30%, rgba(6,182,212,0.08) 0%, transparent 60%),radial-gradient(ellipse at 30% 70%, rgba(79,142,247,0.08) 0%, transparent 60%); }
+  }
+
+  /* Grid lines effect */
+  .grid-lines {
+    position:absolute;inset:0;
+    background-image:linear-gradient(rgba(99,130,180,0.03) 1px,transparent 1px),
+                     linear-gradient(90deg,rgba(99,130,180,0.03) 1px,transparent 1px);
+    background-size:60px 60px;
+  }
+
+  .study-inner {
+    position:relative;z-index:2;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    width:100%;height:100%;padding:40px;
+    gap:0;
+  }
+
+  /* Top bar in study mode */
+  .study-topbar {
+    position:absolute;top:0;left:0;right:0;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 32px;
+    border-bottom:1px solid var(--border);
+    backdrop-filter:blur(8px);
+  }
+  .study-logo { font-family:'Syne',sans-serif;font-weight:700;font-size:16px;opacity:0.6; }
+  .realtime-clock {
+    font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--text2);
+  }
+  .session-info { display:flex;gap:16px; }
+  .session-badge {
+    font-family:'JetBrains Mono',monospace;font-size:12px;
+    padding:4px 12px;border-radius:100px;
+    background:var(--surface);border:1px solid var(--border);color:var(--text2);
+  }
+  .session-badge.exits { border-color:rgba(239,68,68,0.3);color:var(--red); }
+
+  /* Main timer */
+  .timer-display {
+    font-family:'Syne',sans-serif;
+    font-size:clamp(80px,15vw,180px);
+    font-weight:800;
+    letter-spacing:-8px;
+    line-height:1;
+    background:linear-gradient(135deg,#fff 0%,var(--accent) 50%,var(--accent3) 100%);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    text-shadow:none;
+    filter:drop-shadow(0 0 60px rgba(79,142,247,0.4));
+    animation:timerGlow 4s ease-in-out infinite;
+    transition:all 0.3s;
+  }
+  .timer-display.paused {
+    background:linear-gradient(135deg,var(--text3) 0%,var(--text2) 100%);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    filter:drop-shadow(0 0 20px rgba(79,142,247,0.15));
+  }
+  @keyframes timerGlow {
+    0%,100% { filter:drop-shadow(0 0 40px rgba(79,142,247,0.35)); }
+    50% { filter:drop-shadow(0 0 80px rgba(79,142,247,0.6)) drop-shadow(0 0 120px rgba(6,182,212,0.25)); }
+  }
+
+  /* Focus score ring */
+  .focus-ring-wrap {
+    display:flex;flex-direction:column;align-items:center;gap:12px;
+    margin:24px 0;
+  }
+  .focus-ring {
+    width:80px;height:80px;position:relative;
+  }
+  .focus-ring svg { transform:rotate(-90deg); }
+  .focus-ring-bg { stroke:var(--surface2); }
+  .focus-ring-fill {
+    stroke:var(--accent);
+    stroke-linecap:round;
+    transition:stroke-dashoffset 0.5s ease;
+  }
+  .focus-score-text {
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  }
+  .focus-score-num { font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--text); }
+  .focus-score-label { font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px; }
+  .focus-label {
+    font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:1px;
+    padding:4px 12px;border-radius:100px;border:1px solid;
+  }
+  .focus-label.deep { color:var(--green);border-color:rgba(16,185,129,0.3);background:rgba(16,185,129,0.08); }
+  .focus-label.locked { color:var(--accent);border-color:rgba(79,142,247,0.3);background:rgba(79,142,247,0.08); }
+  .focus-label.distracted { color:var(--yellow);border-color:rgba(245,158,11,0.3);background:rgba(245,158,11,0.08); }
+
+  /* Progress bar */
+  .focus-progress {
+    width:min(400px,80vw);height:3px;
+    background:var(--surface2);border-radius:3px;overflow:hidden;
+    margin-top:8px;
+  }
+  .focus-progress-fill {
+    height:100%;
+    background:linear-gradient(90deg,var(--accent),var(--accent3));
+    border-radius:3px;
+    transition:width 1s ease;
+    box-shadow:0 0 8px var(--accent);
+  }
+
+  /* Controls */
+  .study-controls {
+    display:flex;gap:16px;align-items:center;
+    margin-top:32px;
+  }
+  .ctrl-btn {
+    display:flex;align-items:center;gap:8px;
+    padding:14px 28px;border-radius:12px;border:1px solid var(--border);
+    background:var(--surface);color:var(--text);
+    font-family:'Inter',sans-serif;font-size:14px;font-weight:500;
+    cursor:pointer;transition:all 0.2s;
+  }
+  .ctrl-btn:hover { background:var(--surface2);border-color:rgba(79,142,247,0.3); }
+  .ctrl-btn.primary {
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    border:none;color:#fff;
+    box-shadow:0 0 20px var(--glow);
+  }
+  .ctrl-btn.primary:hover { transform:translateY(-1px);box-shadow:0 0 30px var(--glow); }
+  .ctrl-btn.danger { border-color:rgba(239,68,68,0.3);color:var(--red); }
+  .ctrl-btn.danger:hover { background:rgba(239,68,68,0.08); }
+  .ctrl-btn svg { width:18px;height:18px;flex-shrink:0; }
+
+  /* Warning overlay */
+  .exit-warning {
+    position:absolute;bottom:32px;left:50%;transform:translateX(-50%);
+    background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);
+    color:var(--red);padding:12px 24px;border-radius:12px;
+    font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:0.5px;
+    display:none;animation:slideUp 0.3s ease;
+    backdrop-filter:blur(8px);
+    white-space:nowrap;
+  }
+  .exit-warning.show { display:block; }
+  @keyframes slideUp { from{opacity:0;transform:translate(-50%,10px)} to{opacity:1;transform:translate(-50%,0)} }
+
+  /* ====== SUMMARY MODAL ====== */
+  .modal-overlay {
+    position:fixed;inset:0;background:rgba(0,0,0,0.8);
+    display:flex;align-items:center;justify-content:center;
+    z-index:2000;backdrop-filter:blur(8px);
+    display:none;
+  }
+  .modal-overlay.show { display:flex;animation:fadeIn 0.3s ease; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  .modal {
+    background:var(--bg2);border:1px solid var(--border);border-radius:24px;
+    padding:40px;width:min(560px,90vw);max-height:90vh;overflow-y:auto;
+    animation:modalIn 0.3s ease;
+  }
+  @keyframes modalIn { from{opacity:0;transform:scale(0.95) translateY(20px)} to{opacity:1;transform:none} }
+  .modal-title { font-family:'Syne',sans-serif;font-size:28px;font-weight:800;margin-bottom:8px; }
+  .modal-sub { color:var(--text2);font-size:14px;margin-bottom:32px; }
+
+  .summary-grid { display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px; }
+  .summary-card {
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:16px;padding:20px;
+  }
+  .summary-card-val { font-family:'Syne',sans-serif;font-size:32px;font-weight:800; }
+  .summary-card-label { color:var(--text2);font-size:12px;margin-top:4px;text-transform:uppercase;letter-spacing:0.5px; }
+  .summary-card.score .summary-card-val { background:linear-gradient(135deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+  .summary-card.time .summary-card-val { color:var(--green); }
+  .summary-card.exits .summary-card-val { color:var(--red); }
+  .summary-card.streak .summary-card-val { color:var(--yellow); }
+
+  .score-badge-big {
+    text-align:center;padding:24px;
+    border-radius:16px;border:1px solid;margin-bottom:24px;
+    font-family:'Syne',sans-serif;font-size:22px;font-weight:700;
+  }
+  .score-badge-big.deep { border-color:rgba(16,185,129,0.3);background:rgba(16,185,129,0.06);color:var(--green); }
+  .score-badge-big.locked { border-color:rgba(79,142,247,0.3);background:rgba(79,142,247,0.06);color:var(--accent); }
+  .score-badge-big.distracted { border-color:rgba(245,158,11,0.3);background:rgba(245,158,11,0.06);color:var(--yellow); }
+
+  .achievements-section { margin-bottom:24px; }
+  .achievements-title { font-family:'Syne',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:12px; }
+  .achievements-list { display:flex;flex-direction:column;gap:8px; }
+  .achievement-item {
+    display:flex;align-items:center;gap:12px;
+    padding:12px 16px;border-radius:12px;
+    background:var(--surface);border:1px solid var(--border);
+    font-size:13px;
+  }
+  .achievement-item.unlocked { border-color:rgba(245,158,11,0.3);background:rgba(245,158,11,0.05); }
+  .achievement-item .ach-icon { font-size:20px; }
+  .achievement-item .ach-info { flex:1; }
+  .achievement-item .ach-name { font-weight:600; }
+  .achievement-item .ach-desc { color:var(--text2);font-size:12px; }
+  .achievement-item .ach-status { font-size:12px;color:var(--text3); }
+  .achievement-item.unlocked .ach-status { color:var(--yellow); }
+
+  .modal-actions { display:flex;gap:12px; }
+  .modal-btn {
+    flex:1;padding:14px;border-radius:12px;font-family:'Syne',sans-serif;
+    font-size:15px;font-weight:700;cursor:pointer;border:none;transition:all 0.2s;
+  }
+  .modal-btn.primary { background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff; }
+  .modal-btn.secondary { background:var(--surface);border:1px solid var(--border);color:var(--text); }
+  .modal-btn:hover { transform:translateY(-1px); }
+
+  /* ====== PANELS (History, Heatmap) ====== */
+  .panel-overlay {
+    position:fixed;inset:0;background:rgba(0,0,0,0.7);
+    display:none;z-index:1500;backdrop-filter:blur(6px);
+    align-items:flex-end;
+  }
+  .panel-overlay.show { display:flex;animation:fadeIn 0.2s ease; }
+  .panel {
+    background:var(--bg2);border:1px solid var(--border);
+    border-radius:24px 24px 0 0;padding:32px;
+    width:100%;max-height:80vh;overflow-y:auto;
+    animation:panelIn 0.3s ease;
+  }
+  @keyframes panelIn { from{transform:translateY(100%)} to{transform:none} }
+  .panel-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:24px; }
+  .panel-title { font-family:'Syne',sans-serif;font-size:22px;font-weight:800; }
+  .panel-close { background:var(--surface);border:1px solid var(--border);color:var(--text2);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px; }
+
+  /* Heatmap */
+  .heatmap-grid {
+    display:grid;
+    grid-template-columns:repeat(52,1fr);
+    gap:3px;margin-bottom:12px;
+    overflow-x:auto;
+  }
+  .heatmap-cell {
+    width:12px;height:12px;border-radius:2px;
+    background:var(--surface2);
+    transition:all 0.1s;cursor:pointer;
+    position:relative;
+  }
+  .heatmap-cell:hover { transform:scale(1.3); }
+  .heatmap-cell[data-level="1"] { background:rgba(79,142,247,0.25); }
+  .heatmap-cell[data-level="2"] { background:rgba(79,142,247,0.5); }
+  .heatmap-cell[data-level="3"] { background:rgba(79,142,247,0.75); }
+  .heatmap-cell[data-level="4"] { background:rgba(79,142,247,1); }
+  .heatmap-months { display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:8px; }
+  .heatmap-legend { display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);margin-top:8px; }
+  .heatmap-legend-item { width:12px;height:12px;border-radius:2px; }
+
+  /* History list */
+  .history-list { display:flex;flex-direction:column;gap:8px; }
+  .history-item {
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 16px;border-radius:12px;background:var(--surface);border:1px solid var(--border);
+  }
+  .history-date { font-size:13px;color:var(--text2); }
+  .history-time { font-family:'Syne',sans-serif;font-size:18px;font-weight:700; }
+  .history-score { font-size:12px;padding:3px 10px;border-radius:100px; }
+  .history-score.deep { background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.2); }
+  .history-score.locked { background:rgba(79,142,247,0.1);color:var(--accent);border:1px solid rgba(79,142,247,0.2); }
+  .history-score.distracted { background:rgba(245,158,11,0.1);color:var(--yellow);border:1px solid rgba(245,158,11,0.2); }
+
+  /* Sound control */
+  .sound-control {
+    position:fixed;bottom:24px;right:24px;
+    display:flex;flex-direction:column;gap:8px;
+    z-index:100;
+  }
+  .sound-btn {
+    width:44px;height:44px;border-radius:12px;
+    background:var(--surface);border:1px solid var(--border);
+    color:var(--text2);font-size:18px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:all 0.2s;
+  }
+  .sound-btn:hover { background:var(--surface2);color:var(--text); }
+  .sound-btn.active { border-color:var(--accent);color:var(--accent);background:rgba(79,142,247,0.08); }
+
+  /* Footer */
+  footer {
+    text-align:center;padding:24px;
+    color:var(--text3);font-size:12px;
+    border-top:1px solid var(--border);
+    position:relative;z-index:2;
+  }
+
+  /* Responsive */
+  @media(max-width:640px) {
+    nav { padding:16px 20px; }
+    .hero { padding:40px 20px; }
+    .stats-bar { gap:12px; }
+    .stat-card { min-width:120px;padding:16px; }
+    .summary-grid { grid-template-columns:1fr 1fr; }
+    .study-topbar { padding:16px 20px; }
+    .study-inner { padding:20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HOME SCREEN -->
+<div id="home-screen">
+  <div class="mesh-bg">
+    <div class="mesh-blob"></div>
+    <div class="mesh-blob"></div>
+    <div class="mesh-blob"></div>
+  </div>
+  <div class="noise"></div>
+
+  <div class="home-inner">
+    <nav>
+      <div class="logo">
+        <div class="logo-icon">🔒</div>
+        FocusOnStudy
+      </div>
+      <div class="nav-right">
+        <button class="nav-btn" onclick="openHistory()">📊 Lịch sử</button>
+        <button class="nav-btn" onclick="openHeatmap()">🗓 Heatmap</button>
+      </div>
+    </nav>
+
+    <div class="hero">
+      <div class="hero-badge">
+        <span class="dot"></span>
+        Focus Mode
+      </div>
+
+      <h1>Focus<span>On</span>Study<br>Study</h1>
+      <p class="slogan">Focus on what matters.</p>
+
+      <div class="stats-bar">
+        <div class="stat-card">
+          <div class="stat-val" id="today-hours">0h 0m</div>
+          <div class="stat-label">Hôm nay</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="total-sessions">0</div>
+          <div class="stat-label">Phiên học</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="streak-days">0 🔥</div>
+          <div class="stat-label">Streak</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="total-hours">0h</div>
+          <div class="stat-label">Tổng giờ</div>
+        </div>
+      </div>
+
+      <div class="start-btn-wrap">
+        <button class="start-btn" onclick="startStudy()">
+          <div class="btn-glow"></div>
+          ⚡ Bắt đầu học
+        </button>
+        <div style="display:flex;justify-content:center;margin-top:16px;">
+          <div class="sound-toggle" id="sound-toggle-home" onclick="toggleSound()">
+            🎵 <span id="sound-toggle-label">Lo-fi nhạc tập trung</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>Made with ⚡ for deep focus · FocusOnStudy 2025</footer>
+  </div>
+</div>
+
+<!-- STUDY SCREEN -->
+<div id="study-screen">
+  <div class="study-bg"></div>
+  <div class="grid-lines"></div>
+
+  <div class="study-topbar">
+    <div class="study-logo">🎯 FocusOnStudy</div>
+    <div class="realtime-clock" id="realtime-clock">--:--:--</div>
+    <div class="session-info">
+      <span class="session-badge" id="session-exits-badge">Thoát: 0</span>
+      <span class="session-badge" id="session-sound-badge" onclick="toggleSound()" style="cursor:pointer;">🎵 OFF</span>
+    </div>
+  </div>
+
+  <div class="study-inner">
+    <div class="timer-display" id="timer-display">00:00:00</div>
+
+    <div class="focus-ring-wrap">
+      <div class="focus-ring">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle class="focus-ring-bg" cx="40" cy="40" r="34" fill="none" stroke-width="5"/>
+          <circle class="focus-ring-fill" id="focus-ring-fill" cx="40" cy="40" r="34" fill="none" stroke-width="5"
+            stroke-dasharray="213.6" stroke-dashoffset="213.6"/>
+        </svg>
+        <div class="focus-score-text">
+          <div class="focus-score-num" id="focus-score-num">100</div>
+          <div class="focus-score-label">score</div>
+        </div>
+      </div>
+      <div class="focus-label deep" id="focus-label">Deep Focus</div>
+    </div>
+
+    <div class="focus-progress">
+      <div class="focus-progress-fill" id="focus-progress-fill" style="width:100%"></div>
+    </div>
+
+    <div class="study-controls">
+      <button class="ctrl-btn primary" id="pause-btn" onclick="togglePause()">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zm8 0h4v16h-4z"/></svg>
+        Tạm dừng
+      </button>
+      <button class="ctrl-btn danger" onclick="endSession()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+        Kết thúc
+      </button>
+    </div>
+  </div>
+
+  <div class="exit-warning" id="exit-warning">
+    ⚠ Bạn đã thoát chế độ tập trung — Timer đã pause
+  </div>
+</div>
+
+<!-- SUMMARY MODAL -->
+<div class="modal-overlay" id="summary-modal">
+  <div class="modal">
+    <div class="modal-title">📋 Tổng kết phiên học</div>
+    <div class="modal-sub">Xem kết quả phiên học của bạn</div>
+
+    <div class="score-badge-big" id="summary-score-badge">🎯 Deep Focus</div>
+
+    <div class="summary-grid">
+      <div class="summary-card time">
+        <div class="summary-card-val" id="sum-time">--</div>
+        <div class="summary-card-label">Thời gian học</div>
+      </div>
+      <div class="summary-card score">
+        <div class="summary-card-val" id="sum-score">--</div>
+        <div class="summary-card-label">Focus Score</div>
+      </div>
+      <div class="summary-card exits">
+        <div class="summary-card-val" id="sum-exits">--</div>
+        <div class="summary-card-label">Lần thoát FS</div>
+      </div>
+      <div class="summary-card streak">
+        <div class="summary-card-val" id="sum-streak">--</div>
+        <div class="summary-card-label">Streak 🔥</div>
+      </div>
+    </div>
+
+    <div class="achievements-section">
+      <div class="achievements-title">🏆 Thành tích</div>
+      <div class="achievements-list" id="achievements-list"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="modal-btn primary" onclick="closeSummary()">🔒 Học tiếp</button>
+      <button class="modal-btn secondary" onclick="closeSummaryToHome()">🏠 Về trang chủ</button>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY PANEL -->
+<div class="panel-overlay" id="history-panel" onclick="e=>e.target===this&&closeHistory()">
+  <div class="panel" onclick="event.stopPropagation()">
+    <div class="panel-header">
+      <div class="panel-title">📚 Lịch sử học tập</div>
+      <button class="panel-close" onclick="closeHistory()">Đóng</button>
+    </div>
+    <div class="history-list" id="history-list"></div>
+  </div>
+</div>
+
+<!-- HEATMAP PANEL -->
+<div class="panel-overlay" id="heatmap-panel" onclick="e=>e.target===this&&closeHeatmap()">
+  <div class="panel" onclick="event.stopPropagation()">
+    <div class="panel-header">
+      <div class="panel-title">🗓 Heatmap học tập (1 năm)</div>
+      <button class="panel-close" onclick="closeHeatmap()">Đóng</button>
+    </div>
+    <div class="heatmap-months" id="heatmap-months"></div>
+    <div class="heatmap-grid" id="heatmap-grid"></div>
+    <div class="heatmap-legend">
+      <span>Ít</span>
+      <div class="heatmap-legend-item" style="background:var(--surface2)"></div>
+      <div class="heatmap-legend-item" style="background:rgba(79,142,247,0.25)"></div>
+      <div class="heatmap-legend-item" style="background:rgba(79,142,247,0.5)"></div>
+      <div class="heatmap-legend-item" style="background:rgba(79,142,247,0.75)"></div>
+      <div class="heatmap-legend-item" style="background:rgba(79,142,247,1)"></div>
+      <span>Nhiều</span>
+    </div>
+  </div>
+</div>
+
+<!-- AUDIO (Lo-fi via Web Audio API) -->
+<script>
+// ============================
+// STATE
+// ============================
+let timerInterval = null;
+let clockInterval = null;
+let elapsedSeconds = 0;
+let isPaused = true;
+let isFullscreen = false;
+let exitCount = 0;
+let sessionStart = null;
+let soundEnabled = false;
+let audioCtx = null;
+let noiseSource = null;
+let lofiNodes = [];
+
+// Load from localStorage
+function loadData() {
+  return JSON.parse(localStorage.getItem('focusonstudy_data') || '{}');
+}
+function saveData(d) {
+  localStorage.setItem('focusonstudy_data', JSON.stringify(d));
+}
+function getData(key, def) {
+  const d = loadData();
+  return d[key] !== undefined ? d[key] : def;
+}
+function setData(key, val) {
+  const d = loadData();
+  d[key] = val;
+  saveData(d);
+}
+
+// ============================
+// HOME STATS
+// ============================
+function updateHomeStats() {
+  const today = new Date().toDateString();
+  const sessions = getData('sessions', []);
+  const todaySessions = sessions.filter(s => new Date(s.date).toDateString() === today);
+  const todaySecs = todaySessions.reduce((a, b) => a + (b.duration || 0), 0);
+  const totalSecs = sessions.reduce((a, b) => a + (b.duration || 0), 0);
+  const totalHours = Math.floor(totalSecs / 3600);
+
+  document.getElementById('today-hours').textContent = formatDuration(todaySecs);
+  document.getElementById('total-sessions').textContent = sessions.length;
+  document.getElementById('total-hours').textContent = totalHours + 'h';
+  document.getElementById('streak-days').textContent = calcStreak(sessions) + ' 🔥';
+}
+
+function formatDuration(secs) {
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  if (h > 0) return h + 'h ' + m + 'm';
+  return m + 'm ' + (secs % 60) + 's';
+}
+
+function calcStreak(sessions) {
+  if (!sessions.length) return 0;
+  const days = [...new Set(sessions.map(s => new Date(s.date).toDateString()))];
+  let streak = 0;
+  const now = new Date();
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    if (days.includes(d.toDateString())) streak++;
+    else if (i > 0) break;
+  }
+  return streak;
+}
+
+// ============================
+// STUDY SESSION
+// ============================
+function startStudy() {
+  elapsedSeconds = 0;
+  exitCount = 0;
+  isPaused = false;
+  sessionStart = new Date();
+
+  document.getElementById('home-screen').classList.add('hidden');
+  document.getElementById('study-screen').classList.add('active');
+  document.getElementById('exit-warning').classList.remove('show');
+  updateTimerDisplay();
+  updateFocusUI();
+
+  // Request fullscreen
+  const el = document.documentElement;
+  if (el.requestFullscreen) el.requestFullscreen();
+  else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
+
+  // Start clock
+  clockInterval = setInterval(updateClock, 1000);
+  updateClock();
+
+  // Start timer
+  timerInterval = setInterval(() => {
+    if (!isPaused) {
+      elapsedSeconds++;
+      updateTimerDisplay();
+      updateFocusUI();
+    }
+  }, 1000);
+
+  if (soundEnabled) startSound();
+}
+
+function togglePause() {
+  isPaused = !isPaused;
+  const btn = document.getElementById('pause-btn');
+  if (isPaused) {
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Tiếp tục`;
+    btn.className = 'ctrl-btn';
+    document.getElementById('timer-display').classList.add('paused');
+  } else {
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zm8 0h4v16h-4z"/></svg> Tạm dừng`;
+    btn.className = 'ctrl-btn primary';
+    document.getElementById('timer-display').classList.remove('paused');
+  }
+}
+
+function endSession() {
+  clearInterval(timerInterval);
+  clearInterval(clockInterval);
+  stopSound();
+
+  // Exit fullscreen
+  if (document.exitFullscreen) document.exitFullscreen();
+  else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+
+  saveSession();
+  showSummary();
+}
+
+function saveSession() {
+  const sessions = getData('sessions', []);
+  const score = calcFocusScore();
+  sessions.push({
+    date: sessionStart.toISOString(),
+    duration: elapsedSeconds,
+    exits: exitCount,
+    score: score.num
+  });
+  setData('sessions', sessions);
+
+  // Update today
+  const today = new Date().toDateString();
+  const todaySecs = sessions.filter(s => new Date(s.date).toDateString() === today)
+                            .reduce((a,b) => a + b.duration, 0);
+  setData('today_secs', todaySecs);
+  setData('streak', calcStreak(sessions));
+
+  // Check achievements
+  checkAchievements(sessions, elapsedSeconds);
+}
+
+// ============================
+// TIMER DISPLAY
+// ============================
+function formatTime(secs) {
+  const h = String(Math.floor(secs/3600)).padStart(2,'0');
+  const m = String(Math.floor((secs%3600)/60)).padStart(2,'0');
+  const s = String(secs%60).padStart(2,'0');
+  return h + ':' + m + ':' + s;
+}
+
+function updateTimerDisplay() {
+  document.getElementById('timer-display').textContent = formatTime(elapsedSeconds);
+  document.getElementById('session-exits-badge').textContent = 'Thoát: ' + exitCount;
+}
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('realtime-clock').textContent =
+    now.toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+// ============================
+// FOCUS SCORE
+// ============================
+function calcFocusScore() {
+  if (elapsedSeconds < 10) return {num:100, label:'Deep Focus', cls:'deep'};
+  // Penalty per exit, diminishing returns
+  const exitPenalty = exitCount * 8;
+  // Bonus for long sessions
+  const timeBonus = Math.min(10, Math.floor(elapsedSeconds / 600));
+  const score = Math.max(0, Math.min(100, 100 - exitPenalty + timeBonus));
+
+  let label, cls;
+  if (score >= 95) { label = 'Deep Focus'; cls = 'deep'; }
+  else if (score >= 80) { label = 'Locked In'; cls = 'locked'; }
+  else { label = 'Distracted'; cls = 'distracted'; }
+
+  return {num: score, label, cls};
+}
+
+function updateFocusUI() {
+  const {num, label, cls} = calcFocusScore();
+  const circumference = 213.6;
+  const offset = circumference - (num / 100) * circumference;
+
+  document.getElementById('focus-score-num').textContent = num;
+  document.getElementById('focus-ring-fill').style.strokeDashoffset = offset;
+
+  const ringFill = document.getElementById('focus-ring-fill');
+  if (cls === 'deep') ringFill.style.stroke = 'var(--green)';
+  else if (cls === 'locked') ringFill.style.stroke = 'var(--accent)';
+  else ringFill.style.stroke = 'var(--yellow)';
+
+  const labelEl = document.getElementById('focus-label');
+  labelEl.textContent = label;
+  labelEl.className = 'focus-label ' + cls;
+
+  document.getElementById('focus-progress-fill').style.width = num + '%';
+}
+
+// ============================
+// FULLSCREEN DETECTION
+// ============================
+document.addEventListener('fullscreenchange', handleFSChange);
+document.addEventListener('webkitfullscreenchange', handleFSChange);
+document.addEventListener('mozfullscreenchange', handleFSChange);
+
+function handleFSChange() {
+  const inFS = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
+
+  if (!inFS && document.getElementById('study-screen').classList.contains('active')) {
+    // Exited fullscreen
+    exitCount++;
+    if (!isPaused) togglePause();
+    const warn = document.getElementById('exit-warning');
+    warn.classList.add('show');
+    setTimeout(() => warn.classList.remove('show'), 4000);
+    updateTimerDisplay();
+  } else if (inFS && document.getElementById('study-screen').classList.contains('active')) {
+    // Re-entered
+    if (isPaused) togglePause();
+    document.getElementById('exit-warning').classList.remove('show');
+  }
+}
+
+// Tab visibility
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && !isPaused && document.getElementById('study-screen').classList.contains('active')) {
+    togglePause();
+    exitCount++;
+    updateTimerDisplay();
+  }
+});
+
+// ============================
+// SUMMARY
+// ============================
+function showSummary() {
+  document.getElementById('study-screen').classList.remove('active');
+  document.getElementById('home-screen').classList.remove('hidden');
+
+  const {num, label, cls} = calcFocusScore();
+  const badge = document.getElementById('summary-score-badge');
+  const emoji = cls === 'deep' ? '🎯' : cls === 'locked' ? '🔐' : '⚠️';
+  badge.textContent = emoji + ' ' + label;
+  badge.className = 'score-badge-big ' + cls;
+
+  document.getElementById('sum-time').textContent = formatDuration(elapsedSeconds);
+  document.getElementById('sum-score').textContent = num + '/100';
+  document.getElementById('sum-exits').textContent = exitCount + ' lần';
+  document.getElementById('sum-streak').textContent = calcStreak(getData('sessions',[])) + ' ngày';
+
+  renderAchievements();
+  document.getElementById('summary-modal').classList.add('show');
+  updateHomeStats();
+}
+
+function closeSummary() {
+  document.getElementById('summary-modal').classList.remove('show');
+}
+function closeSummaryToHome() {
+  closeSummary();
+}
+
+// ============================
+// ACHIEVEMENTS
+// ============================
+const ACHIEVEMENTS = [
+  { id:'10h', icon:'⏰', name:'10 giờ học', desc:'Tổng thời gian học đạt 10 giờ', check: (ss) => ss.reduce((a,b)=>a+b.duration,0) >= 36000 },
+  { id:'3h_cont', icon:'🔥', name:'3 giờ liên tục', desc:'Học liên tục 3 giờ không thoát', check: (ss, dur) => dur >= 10800 },
+  { id:'7streak', icon:'📅', name:'7 ngày streak', desc:'Học đủ 7 ngày liên tiếp', check: (ss) => calcStreak(ss) >= 7 },
+  { id:'perfect', icon:'💎', name:'Perfect Session', desc:'Focus score 100 một phiên', check: (ss) => ss.some(s => s.score === 100) },
+  { id:'50h', icon:'🏆', name:'50 giờ học', desc:'Tổng thời gian học đạt 50 giờ', check: (ss) => ss.reduce((a,b)=>a+b.duration,0) >= 180000 },
+  { id:'first', icon:'🚀', name:'Bắt đầu hành trình', desc:'Hoàn thành phiên học đầu tiên', check: (ss) => ss.length >= 1 },
+];
+
+function checkAchievements(sessions, dur) {
+  const unlocked = getData('achievements', []);
+  ACHIEVEMENTS.forEach(a => {
+    if (!unlocked.includes(a.id) && a.check(sessions, dur)) {
+      unlocked.push(a.id);
+    }
+  });
+  setData('achievements', unlocked);
+}
+
+function renderAchievements() {
+  const unlocked = getData('achievements', []);
+  const sessions = getData('sessions', []);
+  const list = document.getElementById('achievements-list');
+  list.innerHTML = ACHIEVEMENTS.map(a => {
+    const isUnlocked = unlocked.includes(a.id);
+    return `<div class="achievement-item ${isUnlocked?'unlocked':''}">
+      <span class="ach-icon">${a.icon}</span>
+      <div class="ach-info">
+        <div class="ach-name">${a.name}</div>
+        <div class="ach-desc">${a.desc}</div>
+      </div>
+      <span class="ach-status">${isUnlocked ? '✅ Đạt được' : '🔒 Chưa đạt'}</span>
+    </div>`;
+  }).join('');
+}
+
+// ============================
+// HISTORY
+// ============================
+function openHistory() {
+  const sessions = getData('sessions', []).slice().reverse();
+  const list = document.getElementById('history-list');
+  if (!sessions.length) {
+    list.innerHTML = '<p style="color:var(--text2);text-align:center;padding:24px;">Chưa có phiên học nào</p>';
+  } else {
+    list.innerHTML = sessions.slice(0,20).map(s => {
+      const d = new Date(s.date);
+      const dateStr = d.toLocaleDateString('vi-VN', {weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+      let scoreLabel = s.score >= 95 ? 'deep' : s.score >= 80 ? 'locked' : 'distracted';
+      let scoreName = s.score >= 95 ? 'Deep Focus' : s.score >= 80 ? 'Locked In' : 'Distracted';
+      return `<div class="history-item">
+        <span class="history-date">${dateStr}</span>
+        <span class="history-time">${formatDuration(s.duration)}</span>
+        <span class="history-score ${scoreLabel}">${scoreName} ${s.score}</span>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('history-panel').classList.add('show');
+}
+function closeHistory() { document.getElementById('history-panel').classList.remove('show'); }
+
+// ============================
+// HEATMAP
+// ============================
+function openHeatmap() {
+  renderHeatmap();
+  document.getElementById('heatmap-panel').classList.add('show');
+}
+function closeHeatmap() { document.getElementById('heatmap-panel').classList.remove('show'); }
+
+function renderHeatmap() {
+  const sessions = getData('sessions', []);
+  const dayMap = {};
+  sessions.forEach(s => {
+    const key = new Date(s.date).toDateString();
+    dayMap[key] = (dayMap[key] || 0) + s.duration;
+  });
+
+  const grid = document.getElementById('heatmap-grid');
+  grid.innerHTML = '';
+  const now = new Date();
+  const cells = 365;
+  const months = document.getElementById('heatmap-months');
+  const monthLabels = {};
+
+  for (let i = cells - 1; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const key = d.toDateString();
+    const secs = dayMap[key] || 0;
+    let level = 0;
+    if (secs > 0) level = 1;
+    if (secs > 3600) level = 2;
+    if (secs > 7200) level = 3;
+    if (secs > 14400) level = 4;
+
+    const cell = document.createElement('div');
+    cell.className = 'heatmap-cell';
+    if (level) cell.setAttribute('data-level', level);
+    cell.title = key + ': ' + formatDuration(secs);
+    grid.appendChild(cell);
+
+    const month = d.toLocaleString('vi-VN', {month:'short'});
+    const weekNum = Math.floor((cells - 1 - i) / 7);
+    if (!monthLabels[month]) monthLabels[month] = weekNum;
+  }
+
+  // Month labels
+  months.innerHTML = Object.entries(monthLabels).slice(0,12).map(([m]) => `<span>${m}</span>`).join('');
+}
+
+// ============================
+// SOUND (Web Audio API Lo-fi)
+// ============================
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function startSound() {
+  initAudio();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  stopSound();
+
+  // Brown noise
+  const bufferSize = audioCtx.sampleRate * 2;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  let lastOut = 0;
+  for (let i = 0; i < bufferSize; i++) {
+    const white = Math.random() * 2 - 1;
+    data[i] = (lastOut + (0.02 * white)) / 1.02;
+    lastOut = data[i];
+    data[i] *= 3.5;
+  }
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = buffer;
+  noise.loop = true;
+
+  const noiseGain = audioCtx.createGain();
+  noiseGain.gain.value = 0.04;
+
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 600;
+
+  noise.connect(filter);
+  filter.connect(noiseGain);
+  noiseGain.connect(audioCtx.destination);
+  noise.start();
+  noiseNodes = [noise, filter, noiseGain];
+
+  // Lo-fi drone tones
+  const drones = [55, 110, 165];
+  droneNodes = drones.map(freq => {
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    g.gain.value = 0.012;
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start();
+    return [osc, g];
+  });
+
+  // Gentle pad with LFO
+  const pad = audioCtx.createOscillator();
+  const padGain = audioCtx.createGain();
+  pad.type = 'triangle';
+  pad.frequency.value = 220;
+  const lfo = audioCtx.createOscillator();
+  const lfoGain = audioCtx.createGain();
+  lfo.frequency.value = 0.1;
+  lfoGain.gain.value = 8;
+  lfo.connect(lfoGain); lfoGain.connect(pad.frequency);
+  padGain.gain.value = 0.015;
+  pad.connect(padGain); padGain.connect(audioCtx.destination);
+  pad.start(); lfo.start();
+  padNodes = [pad, padGain, lfo, lfoGain];
+
+  lofiNodes = { noiseNodes, droneNodes, padNodes };
+}
+
+let noiseNodes = [], droneNodes = [], padNodes = [];
+
+function stopSound() {
+  try {
+    noiseNodes.forEach(n => { try { n.stop && n.stop(); } catch(e){} });
+    droneNodes.forEach(pair => pair.forEach(n => { try { n.stop && n.stop(); } catch(e){} }));
+    padNodes.forEach(n => { try { n.stop && n.stop(); } catch(e){} });
+  } catch(e){}
+  noiseNodes = []; droneNodes = []; padNodes = [];
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  const t1 = document.getElementById('sound-toggle-home');
+  const t2 = document.getElementById('session-sound-badge');
+
+  if (soundEnabled) {
+    t1 && t1.classList.add('active');
+    if (t2) t2.textContent = '🎵 ON';
+    if (document.getElementById('study-screen').classList.contains('active')) startSound();
+  } else {
+    t1 && t1.classList.remove('active');
+    if (t2) t2.textContent = '🎵 OFF';
+    stopSound();
+  }
+}
+
+// ============================
+// INIT
+// ============================
+updateHomeStats();
+</script>
+</body>
+</html>
